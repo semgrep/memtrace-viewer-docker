@@ -1,4 +1,4 @@
-FROM alpine:3.23
+FROM alpine:3.23 AS builder
 
 RUN apk add --no-cache opam git bash gmp-dev pkgconf libffi-dev openssl-dev zlib-dev linux-headers gcc musl-dev make
 
@@ -11,6 +11,12 @@ RUN mv /usr/bin/gcc /usr/bin/gcc-real && \
     chmod +x /usr/bin/gcc
 RUN opam install memtrace_viewer.v0.18~preview.130.83+317 -y --assume-depexts
 
+FROM alpine:3.23
+
+RUN apk add --no-cache gmp libffi openssl zlib
+
+COPY --from=builder /root/.opam/5.2/bin/memtrace-viewer /usr/local/bin/memtrace-viewer
+
 EXPOSE 8080
 
-ENTRYPOINT ["opam", "exec", "--", "memtrace-viewer"]
+ENTRYPOINT ["memtrace-viewer"]
